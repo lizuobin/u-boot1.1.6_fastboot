@@ -1,0 +1,98 @@
+jffs2_1pass.o: jffs2_1pass.c \
+ /home/work/uboot/u-boot-1.1.6/include/common.h \
+ /home/work/uboot/u-boot-1.1.6/include/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/configs/100ask24x0.h \
+ /home/work/uboot/u-boot-1.1.6/include/cmd_confdefs.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/bitops.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/bitops.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/types.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/posix_types.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/stddef.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/posix_types.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/types.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/string.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/string.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/ptrace.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/proc/ptrace.h \
+ /opt/FriendlyARM/toolschain/4.5.1/lib/gcc/arm-none-linux-gnueabi/4.5.1/include/stdarg.h \
+ /home/work/uboot/u-boot-1.1.6/include/part.h \
+ /home/work/uboot/u-boot-1.1.6/include/ide.h \
+ /home/work/uboot/u-boot-1.1.6/include/flash.h \
+ /home/work/uboot/u-boot-1.1.6/include/image.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/u-boot.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/global_data.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/mach-types.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/setup.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/u-boot-arm.h \
+ /home/work/uboot/u-boot-1.1.6/include/malloc.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/stat.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/time.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/jffs2.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/load_kernel.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/list.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/jffs2_1pass.h \
+ jffs2_private.h /home/work/uboot/u-boot-1.1.6/include/nand.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/mtd/compat.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/mtd/mtd.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/mtd/mtd-abi.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/mtd/nand.h
+compr_rtime.o: compr_rtime.c \
+ /home/work/uboot/u-boot-1.1.6/include/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/configs/100ask24x0.h \
+ /home/work/uboot/u-boot-1.1.6/include/cmd_confdefs.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/jffs2.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/types.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/load_kernel.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/list.h
+compr_rubin.o: compr_rubin.c \
+ /home/work/uboot/u-boot-1.1.6/include/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/configs/100ask24x0.h \
+ /home/work/uboot/u-boot-1.1.6/include/cmd_confdefs.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/jffs2.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/types.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/load_kernel.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/list.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/compr_rubin.h
+compr_zlib.o: compr_zlib.c /home/work/uboot/u-boot-1.1.6/include/common.h \
+ /home/work/uboot/u-boot-1.1.6/include/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/configs/100ask24x0.h \
+ /home/work/uboot/u-boot-1.1.6/include/cmd_confdefs.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/bitops.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/bitops.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/types.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/posix_types.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/stddef.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/posix_types.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/types.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/string.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/string.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/ptrace.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/proc/ptrace.h \
+ /opt/FriendlyARM/toolschain/4.5.1/lib/gcc/arm-none-linux-gnueabi/4.5.1/include/stdarg.h \
+ /home/work/uboot/u-boot-1.1.6/include/part.h \
+ /home/work/uboot/u-boot-1.1.6/include/ide.h \
+ /home/work/uboot/u-boot-1.1.6/include/flash.h \
+ /home/work/uboot/u-boot-1.1.6/include/image.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/u-boot.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/global_data.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/mach-types.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/setup.h \
+ /home/work/uboot/u-boot-1.1.6/include/asm/u-boot-arm.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/jffs2.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/load_kernel.h \
+ /home/work/uboot/u-boot-1.1.6/include/linux/list.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/mini_inflate.h
+mini_inflate.o: mini_inflate.c \
+ /home/work/uboot/u-boot-1.1.6/include/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/configs/100ask24x0.h \
+ /home/work/uboot/u-boot-1.1.6/include/cmd_confdefs.h \
+ /home/work/uboot/u-boot-1.1.6/include/jffs2/mini_inflate.h
+compr_lzo.o: compr_lzo.c /home/work/uboot/u-boot-1.1.6/include/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/configs/100ask24x0.h \
+ /home/work/uboot/u-boot-1.1.6/include/cmd_confdefs.h
+compr_lzari.o: compr_lzari.c \
+ /home/work/uboot/u-boot-1.1.6/include/config.h \
+ /home/work/uboot/u-boot-1.1.6/include/configs/100ask24x0.h \
+ /home/work/uboot/u-boot-1.1.6/include/cmd_confdefs.h
