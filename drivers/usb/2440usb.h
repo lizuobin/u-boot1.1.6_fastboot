@@ -108,7 +108,7 @@
 #define USBDMA		TRUE
 //#define USBDMA		FALSE
 #define USBDMA_DEMAND 	FALSE	//the downloadFileSize should be (64*n)
-#define BULK_PKT_SIZE	32
+#define BULK_PKT_SIZE	64
 
 #define EP0_PKT_SIZE             8	
 #define EP1_PKT_SIZE             BULK_PKT_SIZE

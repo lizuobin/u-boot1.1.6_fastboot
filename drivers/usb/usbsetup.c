@@ -611,8 +611,6 @@ void Ep0Handler(void)
     }
 }
 
-
-   
     
 void PrintEp0Pkt(U8 *pt)
 {
@@ -624,28 +622,26 @@ void PrintEp0Pkt(U8 *pt)
 }
 
 
-
-
 void InitDescriptorTable(void)
 {	
-    //Standard device descriptor
+//Standard device descriptor
     descDev.bLength=0x12;	//EP0_DEV_DESC_SIZE=0x12 bytes    
     descDev.bDescriptorType=DEVICE_TYPE;         
     descDev.bcdUSBL=0x10;
     descDev.bcdUSBH=0x01; 	//Ver 1.10
-    descDev.bDeviceClass=0xFF; //0x0          
+    descDev.bDeviceClass=0x0; //0x0          
     descDev.bDeviceSubClass=0x0;          
     descDev.bDeviceProtocol=0x0;          
     descDev.bMaxPacketSize0=0x8;         
-    descDev.idVendorL=0x45;
-    descDev.idVendorH=0x53;
-    descDev.idProductL=0x34;
-    descDev.idProductH=0x12;
+    descDev.idVendorL=0xd1;
+    descDev.idVendorH=0x18;
+    descDev.idProductL=0x02;
+    descDev.idProductH=0x00;
     descDev.bcdDeviceL=0x00;
     descDev.bcdDeviceH=0x01;
     descDev.iManufacturer=0x1;  //index of string descriptor
     descDev.iProduct=0x2;	//index of string descriptor 
-    descDev.iSerialNumber=0x0;
+    descDev.iSerialNumber=0x3;
     descDev.bNumConfigurations=0x1;
 
     //Standard configuration descriptor
@@ -667,8 +663,8 @@ void InitDescriptorTable(void)
     descIf.bAlternateSetting=0x0; //?
     descIf.bNumEndpoints=2;	//# of endpoints except EP0
     descIf.bInterfaceClass=0xff; //0x0 ?
-    descIf.bInterfaceSubClass=0x0;  
-    descIf.bInterfaceProtocol=0x0;
+    descIf.bInterfaceSubClass= 66;  
+    descIf.bInterfaceProtocol=0x3;
     descIf.iInterface=0x0;
 
     //Standard endpoint0 descriptor

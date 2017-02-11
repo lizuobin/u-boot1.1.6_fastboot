@@ -222,24 +222,11 @@ void usb_init(void)
 	U32 mpll_val, upll_val, divn_upll=0;
     extern int bBootFrmNORFlash(void);
 
-    clk_powerregs = S3C24X0_GetBase_CLOCK_POWER();
-
-    usbdevregs = S3C24X0_GetBase_USB_DEVICE();
-    dmaregs = S3C24X0_GetBase_DMAS();
+    clk_powerregs 	= S3C24X0_GetBase_CLOCK_POWER();
+    usbdevregs 		= S3C24X0_GetBase_USB_DEVICE();
+    dmaregs 		= S3C24X0_GetBase_DMAS();
 
     udelay(100000);
-#if 0	
-	// USB device detection control
-	rGPGCON &= ~(3<<24);
-	rGPGCON |=  (1<<24); // output
-	rGPGUP  |=  (1<<12); // pullup disable
-	rGPGDAT |=  (1<<12); // output	
-#endif
-
-	//ChangeUPllValue(60,4,2);		// 48MHz
-	//for(i=0; i<7; i++);
-	//ChangeClockDivider(13,12);
-	//ChangeMPllValue(97,1,2);		//296Mhz
 
 	isUsbdSetConfiguration=0;
 
@@ -248,22 +235,11 @@ void usb_init(void)
 	gpioregs->MISCCR=gpioregs->MISCCR&~(1<<3); // USBD is selected instead of USBH1 
 	gpioregs->MISCCR=gpioregs->MISCCR&~(1<<13); // USB port 1 is enabled.
 
-//
-//  USBD should be initialized first of all.
-//
-
-#if 0
-	UsbdMain(); 
-	MMU_Init(); //MMU should be reconfigured or turned off for the debugger, 
-	//After downloading, MMU should be turned off for the MMU based program,such as WinCE.	
-#else
-//thisway.diy    MMU_EnableICache();  
 	UsbdMain(); 
     udelay(100000);
     gpioregs->GPGDAT |= ((1<<9) | (1<<12));  /* enable USB Device, thisway.diy */
     gpioregs->GPBDAT |= (1<<9);   /* enable USB Device, thisway.diy */
     gpioregs->GPCDAT |= (1<<5);   /* enable USB Device, thisway.diy */
-#endif
 
 #if USBDMA
 	mode="DMA";
@@ -271,37 +247,8 @@ void usb_init(void)
 	mode="Int";
 #endif
 
-	// CLKOUT0/1 select.
-	//printf("CLKOUT0:MPLL in, CLKOUT1:RTC clock.\n");
-	//Clk0_Enable(0);	// 0:MPLLin, 1:UPLL, 2:FCLK, 3:HCLK, 4:PCLK, 5:DCLK0
-	//Clk1_Enable(2);	// 0:MPLLout, 1:UPLL, 2:RTC, 3:HCLK, 4:PCLK, 5:DCLK1	
-//	Clk0_Disable();
-//	Clk1_Disable();
-	
 	mpll_val = clk_powerregs->MPLLCON;
 	upll_val = clk_powerregs->UPLLCON; 
-
-
-    if (1) //(!bBootFrmNORFlash())
-    {
-    	printf("UPLLVal [M:%xh,P:%xh,S:%xh]\n", (upll_val&(0xff<<12))>>12,(upll_val&(0x3f<<4))>>4,(upll_val&0x3));
-    	printf("MPLLVal [M:%xh,P:%xh,S:%xh]\n", (mpll_val&(0xff<<12))>>12,(mpll_val&(0x3f<<4))>>4,(mpll_val&0x3));
-    	printf("CLKDIVN:%xh\n", clk_powerregs->CLKDIVN);
-
-    	printf("\n\n");
-    	printf("+---------------------------------------------+\n");
-    	printf("| S3C2440A USB Downloader ver R0.03 2004 Jan  |\n");
-    	printf("+---------------------------------------------+\n");
-    //	printf("FCLK=%4.1fMHz,%s mode\n",FCLK/1000000.,mode); 
-    	printf("USB: IN_ENDPOINT:1 OUT_ENDPOINT:3\n"); 
-    	printf("FORMAT: <ADDR(DATA):4>+<SIZE(n+10):4>+<DATA:n>+<CS:2>\n");
-    	printf("NOTE: Power off/on or press the reset button for 1 sec\n");
-    	printf("      in order to get a valid USB device address.\n");
-    	printf("\n");
-    }
-	download_run=0; //The default menu is the Download & Run mode.
-
-//	WaitDownload();    
 
 }
 
@@ -310,52 +257,34 @@ void usb_init(void)
 __u32 usb_receive(char *buf, size_t len, U32 wait)
 {
     int first=1;
-    U8 tempMem[16];
-    U32 j;
-    unsigned int dwRecvTimeSec = 0;
-	char c;
+	U8 response[64];
+    unsigned int dwRecvTimeSec = 0;    
 
-    dwUSBBufReadPtr = dwUSBBufBase; // USB_BUF_BASE; thiswa.diy, 2006.06.21
-    dwUSBBufWritePtr = dwUSBBufBase; // USB_BUF_BASE; thiswa.diy, 2006.06.21
-    bDMAPending = 0;
-
-    /* add by thisway.diy */
-    tempDownloadAddress = dwUSBBufBase; // USB_BUF_BASE; thiswa.diy, 2006.06.21 // RAM_BASE, changed by thisway.diy for wince, 2006.06.18
-
-    downloadAddress=(U32)tempMem; //_RAM_STARTADDRESS; 
-    downPt=(unsigned char *)downloadAddress;
-	//This address is used for receiving first 8 byte.
-    downloadFileSize=0;
-    
-
-    /*******************************/
-    /*    File download    */
-    /*******************************/
-    if(isUsbdSetConfiguration==0)
+    downloadAddress = 0x30000000; 
+	
+    if(isUsbdSetConfiguration == 0)
     {
-	    printf("USB host is not connected yet.\n");
+	    printf("wait for configure deivce.\n");
     }
-
-    while(downloadFileSize==0) /* wait until send a file */
+down:
+    while(downloadFileSize == 0) /* wait until send a file */
     {
         if(first==1 && isUsbdSetConfiguration!=0)
         {
-            printf("USB host is connected. Waiting a download.\n");
-            first=0;
+            	printf("USB host is connected. Waiting a download.\n");
+		printf("example:\n");
+		printf("fastboot flash bootloader   u-boot.bin\n");
+		printf("fastboot flash kernel       uImage\n");			
+		printf("fastboot flash yaffs2       rootfs.yaffs2\n");
+		printf("fastboot flash jffs2        rootfs.jffs2\n");
+		printf("fastboot flash onlydownload xxx.bin\n");
+		printf("fastboot reboot\n");
+            	first=0;
         }
-		c = awaitkey(1, 0);
-		if ((c & 0x7f) == INTR)
-		{
-			printf("Cancelled by user\n");
-			return 0;
-		}
-    }
-
-    /* add by thisway.diy */
-    if (downloadFileSize - 10 > len)
-    {
-        printf("Length of file is too big : %d > %d\n", downloadFileSize - 10, len);
-        return 0;
+	if(ctrlc()){
+		printf("exit fastboot.\n");
+		return 0;	
+	}
     }
     
     Timer_InitEx();
@@ -365,67 +294,45 @@ __u32 usb_receive(char *buf, size_t len, U32 wait)
 
     intregs->INTMSK&=~(BIT_DMA2);  
 
-    ClearEp3OutPktReady(); 
-    	// indicate the first packit is processed.
-    	// has been delayed for DMA2 cofiguration.
+    if(downloadFileSize <= (0x80000))
+    {
+        dwUSBBufWritePtr = downloadAddress;
+		dwWillDMACnt 	 = downloadFileSize;
+    }
+  	else
+  	{
+        dwUSBBufWritePtr = downloadAddress;
+		dwWillDMACnt = 0x80000;
+	}
+ 	totalDmaCount = 0;
+	//printf("current addr %x len %d\n", dwUSBBufWritePtr, dwWillDMACnt);
+	ConfigEp3DmaMode(dwUSBBufWritePtr, dwWillDMACnt);
+	ClearEp3OutPktReady(); 
 
-    if(downloadFileSize>EP3_PKT_SIZE)
-    {
-        if(downloadFileSize - EP3_PKT_SIZE<=(0x80000))
-        {
-            /* set the source and length */
-            dwUSBBufWritePtr = downloadAddress + EP3_PKT_SIZE-8;
-            dwWillDMACnt = downloadFileSize - EP3_PKT_SIZE;
-	    }
-      	else
-      	{
-            dwUSBBufWritePtr = downloadAddress + EP3_PKT_SIZE - 8;
-            // dwWillDMACnt = 0x80000 - EP3_PKT_SIZE;
-            
-            /* Changed by thisway.diy, 2006.06.22
-             * We want When the first DMA interrupt happened, 
-             * it has received (0x80000 + 8) bytes data from PC
-             * The format of data PC send out is: <ADDR(DATA):4>+<SIZE(n+10):4>+<DATA:n>+<CS:2>
-             * So, the first 8 bytes isn't the real data we want
-             * We want the dwUSBBufWritePtr is always 0x80000 aligin
-             */
-            dwWillDMACnt = 0x80000 + 8 - EP3_PKT_SIZE;
-    	}
-     	totalDmaCount = 0;
-  	    ConfigEp3DmaMode(dwUSBBufWritePtr, dwWillDMACnt);
-    }
-    else
-    {
-        dwUSBBufWritePtr = downloadAddress + downloadFileSize - 8;
-	    totalDmaCount = downloadFileSize;
-    }
 #endif
 
-    printf("\nNow, Downloading [ADDRESS:%xh,TOTAL:%d]\n",
-    		downloadAddress,downloadFileSize);
+    printf("Downloading [ADDRESS:%xh,TOTAL:%d]\n", downloadAddress, downloadFileSize);
 
-    if (wait)
+    while (totalDmaCount != downloadFileSize)
     {
-        printf("RECEIVED FILE SIZE:%8d",0);
-
-        j = totalDmaCount + 0x10000;
-        while (totalDmaCount != downloadFileSize)
-        {
-            if (totalDmaCount > j)
-            {
-        	    printf("\b\b\b\b\b\b\b\b%8d", j);
-                j = totalDmaCount + 0x10000;
-            }
-        }
-	    printf("\b\b\b\b\b\b\b\b%8d ", totalDmaCount);
-        dwRecvTimeSec = Timer_StopEx();
-        if (dwRecvTimeSec == 0)
-        {
-            dwRecvTimeSec = 1;
-        }
-        printf("(%dKB/S, %dS)\n", (downloadFileSize/dwRecvTimeSec/1024), dwRecvTimeSec);
+		;//等待传输完成
     }
-
+	
+    //printf("totalDmaCount %d \n", totalDmaCount);
+    dwRecvTimeSec = Timer_StopEx();
+    if (dwRecvTimeSec == 0)
+    {
+        dwRecvTimeSec = 1;
+    }
+    //printf("(%dKB/S, %dS)\n", (totalDmaCount/dwRecvTimeSec/1024), dwRecvTimeSec);
+    printf("download ok\n");	
+	downloadFileSize = 0;
+	//告诉主机传输完成
+	strncpy(response, "OKAY", 4);
+	WrPktEp1(response, 4);
+	SetEp1InPktReady();
+	
+goto down;	
     return downloadFileSize - 10;
 
 }

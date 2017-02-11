@@ -365,7 +365,7 @@ void start_armboot (void)
 		/* enable exceptions */
 		enable_interrupts ();
 	    /* add by www.100ask.net */
-	    usb_init();
+	    //usb_init();
 	}
 
     /* Perform network card initialisation if necessary */

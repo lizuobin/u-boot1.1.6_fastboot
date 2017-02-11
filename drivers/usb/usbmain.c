@@ -42,7 +42,7 @@ void UsbdMain(void)
 
     //DetectVbus(); //not used in S3C2400X
 
-    PrepareEp1Fifo(); 
+    //PrepareEp1Fifo(); 
 #if 0    
     while(1)
     {
@@ -83,7 +83,7 @@ void IsrUsbd(void)
 
     	usbdevregs->USB_INT_REG=RESET_INT;  //RESET_INT should be cleared after ResetUsbd().   	
 
-        PrepareEp1Fifo(); 
+        //PrepareEp1Fifo(); 
     }
 
     if(epIntpnd&EP0_INT)

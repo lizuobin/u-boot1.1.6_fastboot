@@ -13,5 +13,5 @@ void Ep3HandlerOptimized(void);
 
 void IsrDma2(void);
 void ClearEp3OutPktReady(void);
-
+void SetEp1InPktReady(void);
 #endif /*__USBOUT_H__*/

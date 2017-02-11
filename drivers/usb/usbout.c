@@ -68,87 +68,126 @@ static U8 tempBuf[64+1];
 void Ep3Handler(void)
 {
     U8 out_csr3;
+	char buf[64];
+	char cmdbuf[64];
+	char response[64];
+	char cmdline[128];
     int fifoCnt;
-    usbdevregs->INDEX_REG=3;
+    usbdevregs->INDEX_REG = 3;
 
-    out_csr3=usbdevregs->OUT_CSR1_REG;
+    out_csr3 = usbdevregs->OUT_CSR1_REG;
     
     DbgPrintf("<3:%x]",out_csr3);
 
     if(out_csr3 & EPO_OUT_PKT_READY)
     {   
-	fifoCnt=usbdevregs->OUT_FIFO_CNT1_REG; 
-#if 0
-	RdPktEp3(ep3Buf,fifoCnt);
-	PrintEpoPkt(ep3Buf,fifoCnt);
-#else
+		fifoCnt = usbdevregs->OUT_FIFO_CNT1_REG; 
 
-	if(downloadFileSize==0)
-	{
-   	    RdPktEp3((U8 *)downPt,8); 	
-   	    
-   	    if(download_run==0)
-   	    {
-		    downloadAddress=tempDownloadAddress;
-	    }
-	    else
-	    {
-	    	downloadAddress=
-	    		*((U8 *)(downPt+0))+
-			(*((U8 *)(downPt+1))<<8)+
-			(*((U8 *)(downPt+2))<<16)+
-			(*((U8 *)(downPt+3))<<24);
-            
-            dwUSBBufReadPtr = downloadAddress;
-            dwUSBBufWritePtr = downloadAddress;
-	    }
-	    downloadFileSize=
-	    	*((U8 *)(downPt+4))+
-		(*((U8 *)(downPt+5))<<8)+
-		(*((U8 *)(downPt+6))<<16)+
-		(*((U8 *)(downPt+7))<<24);
-	    checkSum=0;
-	    downPt=(U8 *)downloadAddress;
+		if(downloadFileSize == 0)
+		{
+	   	    RdPktEp3(cmdbuf, fifoCnt); //The first 8-bytes are deleted.	   
+	   	    	if (memcmp(cmdbuf, "getvar:partition-type:", 22) == 0)
+			{
+				strncpy(response, "OKAY", 4);
+				WrPktEp1(response, 4);
+				ClearEp3OutPktReady();
+				SetEp1InPktReady();
+			}
+			else if (memcmp(cmdbuf, "getvar:max-download-size", 24) == 0)
+			{
+				strncpy(response, "OKAY", 4);
+				strncpy(response + 4, "03200000", 8);
+				WrPktEp1(response, 12);
+				ClearEp3OutPktReady();
+				SetEp1InPktReady();
+			}
+			else if (memcmp(cmdbuf, "download:", 9) == 0)//download:00003800
+			{
+				strncpy(cmdbuf + 17,"Z",1);
+				downloadFileSize = simple_strtoul (cmdbuf + 9, NULL, 16);
+				sprintf(buf, "%X", downloadFileSize);
+    			setenv("filesize", buf);
+				
+				printf("downsize %d\n",downloadFileSize);
+				strncpy(response, "DATA", 4);
+				strncpy(response + 4, cmdbuf + 9, 8);
+				WrPktEp1(response, 12);
+				ClearEp3OutPktReady();
+				SetEp1InPktReady();
+				//屏蔽USBD中断，此时先返回去初始化DMA，然后在 CLR_EP3_OUT_PKT_READY()进行下一次传输 		
+				intregs->INTMSK = intregs->INTMSK | BIT_USBD;
+			}
+			else if (memcmp(cmdbuf, "flash:", 6) == 0)
+			{
+				if (memcmp(cmdbuf + 6, "bootloader", 10) == 0)
+				{
+					run_command("nand erase bootloader", 0);
+					run_command("nand write 0x30000000 bootloader", 0);
+					strncpy(response, "OKAY", 4);
+					WrPktEp1(response, 4);
+					ClearEp3OutPktReady();
+					SetEp1InPktReady();
+				}
+				if (memcmp(cmdbuf + 6, "kernel", 6) == 0)
+				{
+					run_command("nand erase kernel", 0);
+					run_command("nand write 0x30000000 kernel", 0);
+					strncpy(response, "OKAY", 4);
+					WrPktEp1(response, 4);
+					ClearEp3OutPktReady();
+					SetEp1InPktReady();
+				}
+				if (memcmp(cmdbuf + 6, "yaffs2", 6) == 0)
+				{
+					run_command("nand erase root", 0);
+					run_command("nand write.yaffs 0x30000000 root $(filesize)", 0);
+					strncpy(response, "OKAY", 4);
+					WrPktEp1(response, 4);
+					ClearEp3OutPktReady();
+					SetEp1InPktReady();
+				}
+				if (memcmp(cmdbuf + 6, "jffs2", 5) == 0)
+				{
+					run_command("nand erase root", 0);
+					run_command("nand write.jffs2 0x30000000 bootloader $(filesize)", 0);
+					strncpy(response, "OKAY", 4);
+					WrPktEp1(response, 4);
+					ClearEp3OutPktReady();
+					SetEp1InPktReady();
+				}
+				if (memcmp(cmdbuf + 6, "onlydownload", 12) == 0)
+				{
+					strncpy(response, "OKAY", 4);
+					WrPktEp1(response, 4);
+					ClearEp3OutPktReady();
+					SetEp1InPktReady();
+				}
+			}
+			else if(memcmp(cmdbuf, "reboot", 6) == 0)
+			{
+				run_command("reset", 0);
+			}
+	   	    
+	  	    return;	
 
-  	    RdPktEp3_CheckSum((U8 *)downPt,fifoCnt-8); //The first 8-bytes are deleted.	    
-  	    downPt+=fifoCnt-8;  
-  	    
-  	#if USBDMA
-     	    //CLR_EP3_OUT_PKT_READY() is not executed. 
-     	    //So, USBD may generate NAK until DMA2 is configured for USB_EP3;
-     	    intregs->INTMSK|=BIT_USBD; //for debug
-      	    return;	
-  	#endif	
-	}
-	else
-	{
-	#if USBDMA    	
-	    printf("<ERROR>");
-	#endif    
-	    RdPktEp3_CheckSum((U8 *)downPt,fifoCnt); 	    
-	    downPt+=fifoCnt;  //fifoCnt=64
-	}
-#endif
-   	CLR_EP3_OUT_PKT_READY();
-#if 0
-       if(((rOUT_CSR1_REG&0x1)==1) && ((rEP_INT_REG & 0x8)==0))
-  		{
-  		fifoCnt=rOUT_FIFO_CNT1_REG; 
-		RdPktEp3_CheckSum((U8 *)downPt,fifoCnt); 	    
-	       downPt+=fifoCnt;  //fifoCnt=64
-	       CLR_EP3_OUT_PKT_READY();
 		}
-#endif
-  	return;
+		else
+		{
+			printf("error\n");
+		}
+
+	   	CLR_EP3_OUT_PKT_READY();
+
+  		return;
     }
 
     
     //I think that EPO_SENT_STALL will not be set to 1.
     if(out_csr3 & EPO_SENT_STALL)
     {   
-   	DbgPrintf("[STALL]");
-   	CLR_EP3_SENT_STALL();
-   	return;
+	   	DbgPrintf("[STALL]");
+	   	CLR_EP3_SENT_STALL();
+	   	return;
     }	
 }
 
@@ -175,8 +214,6 @@ void RdPktEp3_CheckSum(U8 *buf,int num)
     }
 }
 
-
-
 void IsrDma2(void)
 {
     U8 out_csr3;
@@ -187,17 +224,10 @@ void IsrDma2(void)
 
     ClearPending(BIT_DMA2);	    
 
-    /* thisway.diy, 2006.06.22 
-     * When the first DMA interrupt happened, it has received max (0x80000 + EP3_PKT_SIZE) bytes data from PC
-     */
-    if (!totalDmaCount) 
-        totalDmaCount = dwWillDMACnt + EP3_PKT_SIZE;
-    else
-        totalDmaCount+=dwWillDMACnt;
+    totalDmaCount += dwWillDMACnt;
 
-//    dwUSBBufWritePtr = ((dwUSBBufWritePtr + dwWillDMACnt - USB_BUF_BASE) % USB_BUF_SIZE) + USB_BUF_BASE; /* thisway.diy, 2006.06.21 */
-    dwUSBBufWritePtr = ((dwUSBBufWritePtr + dwWillDMACnt - dwUSBBufBase) % dwUSBBufSize) + dwUSBBufBase;
-
+    dwUSBBufWritePtr = dwUSBBufWritePtr + dwWillDMACnt;
+	
     if(totalDmaCount>=downloadFileSize)// is last?
     {
     	totalDmaCount=downloadFileSize;
@@ -208,12 +238,12 @@ void IsrDma2(void)
     	{
        	    CLR_EP3_OUT_PKT_READY();
 	    }
-        intregs->INTMSK|=BIT_DMA2;  
-        intregs->INTMSK&=~(BIT_USBD);  
+        intregs->INTMSK |= BIT_DMA2;  
+        intregs->INTMSK &= ~(BIT_USBD);  
     }
     else
     {
-    	if((totalDmaCount+0x80000)<downloadFileSize)	
+    	if((totalDmaCount + 0x80000) < downloadFileSize)	
     	{
     	    dwWillDMACnt = 0x80000;
 	    }
@@ -221,21 +251,11 @@ void IsrDma2(void)
     	{
     	    dwWillDMACnt = downloadFileSize - totalDmaCount;
     	}
-
-        // dwEmptyCnt = (dwUSBBufReadPtr - dwUSBBufWritePtr - 1 + USB_BUF_SIZE) % USB_BUF_SIZE; /* thisway.diy, 2006.06.21 */
-        dwEmptyCnt = (dwUSBBufReadPtr - dwUSBBufWritePtr - 1 + dwUSBBufSize) % dwUSBBufSize;
-        if (dwEmptyCnt >= dwWillDMACnt)
-        {
-    	    ConfigEp3DmaMode(dwUSBBufWritePtr, dwWillDMACnt);
-        }
-        else
-        {
-            bDMAPending = 1;
-        }
+		printf("current addr %x len %d\n", dwUSBBufWritePtr, dwWillDMACnt);
+       	ConfigEp3DmaMode(dwUSBBufWritePtr, dwWillDMACnt);
     }
     usbdevregs->INDEX_REG = saveIndexReg;
 }
-
 
 void ClearEp3OutPktReady(void)
 {
@@ -243,4 +263,12 @@ void ClearEp3OutPktReady(void)
     usbdevregs->INDEX_REG=3;
     out_csr3=usbdevregs->OUT_CSR1_REG;
     CLR_EP3_OUT_PKT_READY();
+}
+
+void SetEp1InPktReady(void)
+{
+    U8 in_csr1;
+	usbdevregs->INDEX_REG = 1;
+	in_csr1 = usbdevregs->EP0_CSR_IN_CSR1_REG;
+    SET_EP1_IN_PKT_READY();
 }

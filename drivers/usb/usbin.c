@@ -31,14 +31,7 @@ static void PrintEpiPkt(U8 *pt,int cnt);
 // - in_csr1 is valid.
 // ===================================================================
 
-#define SET_EP1_IN_PKT_READY()  usbdevregs->EP0_CSR_IN_CSR1_REG= ( in_csr1 &(~ EPI_WR_BITS)\
-					| EPI_IN_PKT_READY )	 
-#define SET_EP1_SEND_STALL()	usbdevregs->EP0_CSR_IN_CSR1_REG= ( in_csr1 & (~EPI_WR_BITS)\
-					| EPI_SEND_STALL) )
-#define CLR_EP1_SENT_STALL()	usbdevregs->EP0_CSR_IN_CSR1_REG= ( in_csr1 & (~EPI_WR_BITS)\
-					&(~EPI_SENT_STALL) )
-#define FLUSH_EP1_FIFO() 	usbdevregs->EP0_CSR_IN_CSR1_REG= ( in_csr1 & (~EPI_WR_BITS)\
-					| EPI_FIFO_FLUSH) )
+
 
 
 // ***************************
@@ -91,9 +84,9 @@ void Ep1Handler(void)
     
     transferIndex++;
 
-    PrepareEp1Fifo(); 
-    	//IN_PKT_READY is set   
-    	//This packit will be used for next IN packit.	
+    //PrepareEp1Fifo(); 
+    //IN_PKT_READY is set   
+    //This packit will be used for next IN packit.	
 
     return;
 }
